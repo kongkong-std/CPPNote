@@ -1,0 +1,2 @@
+# A C Plus Plus(c++) Programming Language Note
+This note mainly concerns the author's learning content of C++ program development, including example C++ programs studied and C++ programs developed for some simple cases.
