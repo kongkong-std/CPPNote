@@ -4,7 +4,9 @@ CFLAGS = -Wall -g -O3 -std=c++11
 SRC = ../src
 OBJECT = $(patsubst %.cpp,%.o,$(wildcard $(SRC)/*.cpp))
 # LIB = -lm
-LIB = 
+LIB_PATH =
+LIB_FLAG = -lm
+LIB = $(LIB_PATH) $(LIB_FLAG)
 
 .PHONY: all clean
 all: app_exe
