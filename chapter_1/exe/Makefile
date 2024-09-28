@@ -1,6 +1,6 @@
 # makefile for chapter 1
-CC = g++
-CFLAGS = -Wall -g -O1
+CXX = g++
+CFLAGS = -Wall -g -O3 -std=c++11
 SRC = ../src
 OBJECT = $(patsubst %.cpp,%.o,$(wildcard $(SRC)/*.cpp))
 # LIB = -lm
@@ -10,10 +10,10 @@ LIB =
 all: app_exe
 
 app_exe: $(OBJECT)
-	$(CC) $(CFLAGS) -o app_exe $(OBJECT) $(LIB)
+	$(CXX) $(CFLAGS) -o app_exe $(OBJECT) $(LIB)
 
 %.o: %.cpp
-	$(CC) $(CFLAGS) -c "$<" -o "$@"
+	$(CXX) $(CFLAGS) -c "$<" -o "$@"
 
 clean:
-	rm app_exe $(OBJECT)
+	rm -f app_exe $(OBJECT)
