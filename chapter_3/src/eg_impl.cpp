@@ -6,6 +6,9 @@ void backward_euler_sol(std::vector<double> & /*numerical solution*/,
                         const std::vector<double> & /*diagonal*/,
                         const std::vector<double> & /*down diagonal*/,
                         const std::vector<double> & /*rhs vector*/);
+void solution_to_file(const std::string & /*path to file*/,
+                      const std::vector<double> & /*grid x*/,
+                      const std::vector<double> & /*solution*/);
 
 /*
  * backward Euler method
@@ -20,6 +23,7 @@ void ex3_3(int *p_argc, char ***p_argv)
     char **argv = *p_argv;
     int N = 0;
     double a = 0., b = 0.;
+    std::string dst_true_sol, dst_num_sol;
     for (int index = 0; index < argc; ++index)
     {
         // std::cout << "Argument " << index << " = " << argv[index] << '\n';
@@ -37,6 +41,16 @@ void ex3_3(int *p_argc, char ***p_argv)
         {
             b = atof(argv[index + 1]);
             std::cout << ">>>> interval b = " << b << '\n';
+        }
+        if (std::string(argv[index]) == "-sol_true")
+        {
+            dst_true_sol = argv[index + 1];
+            std::cout << ">>>> dst true solution: " << dst_true_sol << '\n';
+        }
+        if (std::string(argv[index]) == "-sol_num")
+        {
+            dst_num_sol = argv[index + 1];
+            std::cout << ">>>> dst numerical solution: " << dst_num_sol << '\n';
         }
     }
 
@@ -68,6 +82,26 @@ void ex3_3(int *p_argc, char ***p_argv)
         err_norm += grid_err[index] * grid_err[index];
     }
     std::cout << "numerical solution error: " << err_norm << '\n';
+
+    solution_to_file(dst_true_sol, grid_x, sol_true);
+    solution_to_file(dst_num_sol, grid_x, sol_num);
+}
+
+void solution_to_file(const std::string &path,
+                      const std::vector<double> &x,
+                      const std::vector<double> &sol)
+{
+    std::ofstream fp;
+
+    fp.open(path);
+
+    fp << std::scientific << std::setprecision(16);
+
+    for (size_t index = 0; index < x.size(); ++index)
+    {
+        fp << std::setw(21) << std::setfill('0') << x[index] << '\t' << sol[index] << '\n';
+    }
+    fp.close();
 }
 
 /*
