@@ -144,7 +144,7 @@ void eg5_3(void)
     }
     for (int index = 0; index < n; ++index)
     {
-        std::iota(*(mat_a + index), *(mat_a + index) + n, (double)+index);
+        std::iota(*(mat_a + index), *(mat_a + index) + n, (double)index);
     }
     std::cout << "matrix data:\n";
     std::cout << "matrix a:\n";

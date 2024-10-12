@@ -12,5 +12,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <numeric>
+#include <algorithm>
+#include <tuple>
 
 #endif

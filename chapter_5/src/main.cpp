@@ -1,5 +1,6 @@
 #include "../include/main.hpp"
 #include "../include/eg_impl.hpp"
+#include "../include/ex_impl.hpp"
 
 int main(int argc, char **argv)
 {
@@ -22,6 +23,14 @@ int main(int argc, char **argv)
     std::cout << "\n==== result of eg5.5 ====\n";
     eg5_5();
     std::cout << "==== end of eg5.5 ====\n";
+
+    std::cout << "\n==== result of ex5.4 ====\n";
+    ex5_4();
+    std::cout << "==== end of ex5.4 ====\n";
+
+    std::cout << "\n==== result of ex5.10 ====\n";
+    ex5_10();
+    std::cout << "==== end of ex5.10 ====\n";
 
     return 0;
 }
