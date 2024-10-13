@@ -21,11 +21,9 @@ typedef struct
 
 void COO2CSR(CSRMat &mat_csr, const COOMat &mat_coo);
 
-void GaussianEliminationPivot(std::vector<double> &sol /*numerical solution*/,
-                              std::vector<int> &row_idx /*coo row indices*/,
-                              std::vector<int> &col_idx /*coo column indices*/,
-                              std::vector<double> &val /*coo non-zero values*/,
-                              std::vector<double> &rhs /*rhs vector*/);
+void GaussianEliminationPivot(COOMat &mat /*matrix data*/,
+                              std::vector<double> &rhs /*rhs data*/,
+                              std::vector<double> &sol /*numerical solution data*/);
 
 void ex5_10(void)
 {
@@ -216,6 +214,40 @@ void ex5_10(void)
     CSRMat linsys_mat_csr;
     COO2CSR(linsys_mat_csr, linsys_mat_coo);
 
+#if 0 // check csr data
+    std::cout << ">>>> csr matrix data:\n";
+    std::cout << linsys_mat_csr.n << '\t' << linsys_mat_csr.nnz << '\n';
+    for (int index = 0; index < linsys_mat_csr.n; ++index)
+    {
+        std::cout << linsys_mat_csr.row_idx[index] << '\n';
+    }
+    for (int index = 0; index < linsys_mat_csr.n + 1; ++index)
+    {
+        std::cout << linsys_mat_csr.row_ptr[index] << '\n';
+    }
+    for (int index = 0; index < linsys_mat_csr.nnz; ++index)
+    {
+        std::cout << linsys_mat_csr.col_idx[index] << '\n';
+    }
+    for (int index = 0; index < linsys_mat_csr.nnz; ++index)
+    {
+        std::cout << linsys_mat_csr.val[index] << '\n';
+    }
+    std::cout << ">>>> end csr matrix data\n";
+#endif
+
+    // gaussian elimination
+    GaussianEliminationPivot(linsys_mat_coo, linsys_b, linsys_sol);
+#if 1 // check numerical solution data
+    std::cout << ">>>> numerical solution:\n";
+    std::cout << linsys_sol.size() << '\n';
+    for (int index = 0; index < n; ++index)
+    {
+        std::cout << linsys_sol[index] << '\n';
+    }
+    std::cout << ">>>> end numerical solution\n";
+#endif
+
     // free memory
     delete[] rhs_b;
     delete[] row_idx;
@@ -270,13 +302,117 @@ void COO2CSR(CSRMat &mat_csr, const COOMat &mat_coo)
     mat_csr.row_ptr[0] = 0;
 }
 
-void GaussianEliminationPivot(std::vector<double> &sol /*numerical solution*/,
-                              std::vector<int> &row_idx /*coo row indices*/,
-                              std::vector<int> &col_idx /*coo column indices*/,
-                              std::vector<double> &val /*coo non-zero values*/,
-                              std::vector<double> &rhs /*rhs vector*/)
+void GaussianEliminationPivot(COOMat &mat,
+                              std::vector<double> &rhs,
+                              std::vector<double> &sol)
 {
-    int n = rhs.size(), nnz = val.size();
+    int m = mat.m, nnz = mat.nnz;
+
+    for (int index = 0; index < m - 1; ++index)
+    {
+        int pivot_row = index;
+        double max_val = 0.;
+        for (int index_i = index; index_i < m; ++index_i)
+        {
+            for (int index_k = 0; index_k < nnz; ++index_k)
+            {
+                if (mat.row_idx[index_k] == index_i && mat.col_idx[index_k] == index)
+                {
+                    if (fabs(mat.val[index_k]) > max_val)
+                    {
+                        max_val = fabs(mat.val[index_k]);
+                        pivot_row = index_i;
+                    }
+                }
+            }
+        }
+        // assert(max_val > 0.); // non-singular matrix
+        if (max_val == 0.0)
+        {
+            throw std::runtime_error("Matrix is singular or nearly singular.");
+        }
+
+        // exchange row[index] and row[pivot_row]
+        if (pivot_row != index)
+        {
+            // matrix
+            for (int index_k = 0; index_k < nnz; ++index_k)
+            {
+                if (mat.row_idx[index_k] == index)
+                {
+                    mat.row_idx[index_k] = pivot_row;
+                }
+                else if (mat.row_idx[index_k] == pivot_row)
+                {
+                    mat.row_idx[index_k] = index;
+                }
+            }
+
+            // rhs data
+            double tmp = 0.;
+            tmp = rhs[pivot_row];
+            rhs[pivot_row] = rhs[index];
+            rhs[index] = tmp;
+        }
+
+        // elimination
+        for (int index_i = index + 1; index_i < m; ++index_i)
+        {
+            double scale = 0.;
+            for (int index_k = 0; index_k < nnz; ++index_k)
+            {
+                if (mat.row_idx[index_k] == index_i && mat.col_idx[index_k] == index)
+                {
+                    scale = mat.val[index_k] / max_val;
+                    break;
+                }
+            }
+
+            if (scale != 0.)
+            {
+                // matrix data
+                for (int index_k = 0; index_k < nnz; ++index_k)
+                {
+                    if (mat.row_idx[index_k] == index_i)
+                    {
+                        for (int index_j = 0; index_j < nnz; ++index_j)
+                        {
+                            if (mat.row_idx[index_j] == index && mat.col_idx[index_j] == mat.col_idx[index_k])
+                            {
+                                mat.val[index_k] -= scale * mat.val[index_j];
+                            }
+                        }
+                    }
+                }
+
+                // rhs data
+                rhs[index_i] -= scale * rhs[index];
+            }
+        }
+    }
+
+    // updating solution
+    for (int index = m - 1; index >= 0; --index)
+    {
+        double sum = rhs[index];
+        for (int index_k = 0; index_k < nnz; ++index_k)
+        {
+            if (mat.row_idx[index_k] == index && mat.col_idx[index_k] > index)
+            {
+                sum -= mat.val[index_k] * sol[mat.col_idx[index_k]];
+            }
+        }
+
+        double pivot_val = 0.;
+        for (int index_k = 0; index_k < nnz; ++index_k)
+        {
+            if (mat.row_idx[index_k] == index && mat.col_idx[index_k] == index)
+            {
+                pivot_val = mat.val[index_k];
+            }
+        }
+        sol[index] = sum / pivot_val;
+    }
 }
 
 void ex5_4(void)
