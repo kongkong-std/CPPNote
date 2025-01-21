@@ -4,9 +4,9 @@
 
 int main(int argc, char **argv)
 {
-    std::cout << "==== result of eg5.1 ====\n";
-    eg5_1();
-    std::cout << "==== end of eg5.1 ====\n";
+    std::cout << "==== result of eg6.1 ====\n";
+    eg6_1();
+    std::cout << "==== end of eg6.1 ====\n";
 
     
 
